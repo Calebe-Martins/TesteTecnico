@@ -1,151 +1,70 @@
 ﻿@page "/"
+@using System.Net.Sockets;
+@using TesteTecnico.Model;
 
-@using System.Net.Http
-@using System.Text.Json
+@inject AppDbContext db;
 
-@if (userResponse == null)
-{
-    <p><em>Carregando...</em></p>
-}
-@if (userResponse != null && userResponse.Users != null && userResponse.Users.Count > 0)
-{
-    <h3>Dados dos Usuários</h3>
-    <table>
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Nome</th>
-                <th>Email</th>
-                <th>Telefone</th>
-                <th>Rua</th>
-                <th>Estado</th>
-                <th>Código Postal</th>
-                <th>Latitude</th>
-                <th>Gênero</th>
-                <th>Data de Nascimento</th>
-                <th>Profissão</th>
-                <th>Cidade</th>
-                <th>País</th>
-                <th>Longitude</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var user in userResponse.Users)
-            {
-                <tr @onclick="() => SelectUser(user.Id)">
-                    <td>@user.Id</td>
-                    <td>@user.FirstName @user.LastName</td>
-                    <td>@user.Email</td>
-                    <td>@user.Phone</td>
-                    <td>@user.Street</td>
-                    <td>@user.State</td>
-                    <td>@user.ZipCode</td>
-                    <td>@user.Latitude</td>
-                    <td>@user.Gender</td>
-                    <td>@user.DateOfBirth</td>
-                    <td>@user.Job</td>
-                    <td>@user.City</td>
-                    <td>@user.Country</td>
-                    <td>@user.Longitude</td>
-                </tr>
-            }
-        </tbody>
-    </table>
+<h1>Salve</h1>
+<button @onclick="ButtonClick">Clique Aqui</button>
 
-    @if (selectedUserId != null && selectedUserBlogs != null && selectedUserBlogs.Count > 0)
+<p>@getPages()</p>
+
+@code {
+    private void ButtonClick()
     {
-        <h3>Detalhes do Blog</h3>
-        @foreach (var blog in selectedUserBlogs)
+        HttpClient httpClient = new HttpClient();
+        var a =  httpClient.GetFromJsonAsync<UserResponse>("https://api.slingacademy.com/v1/sample-data/users?offset=0&limit=1000").Result;
+        ReplaceIntoUser(a.users);
+        var b = httpClient.GetFromJsonAsync<BlogResponse>("");
+    }
+
+    public void ReplaceIntoUser(List<User> users)
+    {
+        foreach(var user in users)
         {
-            <div class="blog-details">
-                <h4>@blog.Title</h4>
-                <p>@blog.ContentText</p>
-                <!-- Adicione outras informações do blog necessárias -->
-            </div>
+            try
+            {
+                var existingUser = db.User.Find(user.id);
+
+                if (existingUser == null)
+                {
+                    db.User.Add(user);
+                }
+
+                db.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+
         }
     }
 }
 
-@code {
-    private HttpClient httpClient;
-    private UserResponse userResponse;
-    private BlogResponse blogResponse;
-    private int? selectedUserId;
-    private List<Blog> selectedUserBlogs;
-    private bool isBlogModalVisible;
+@code
+{
+    public List<Teste> testes { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-        httpClient = new HttpClient();
-        var response = await httpClient.GetFromJsonAsync<UserResponse>("https://api.slingacademy.com/v1/sample-data/users?offset=0&limit=100");
-        var response2 = await httpClient.GetFromJsonAsync<BlogResponse>("https://api.slingacademy.com/v1/sample-data/blog-posts?offset=0&limit=5");
-        userResponse = response;
-        blogResponse = response2;
+        ////db.Teste.Add(new Teste() { nome = "TESTE", sobrenome = "1", idade = 0 });
+        ////db.SaveChanges();
+        //testes = db.Teste.ToList();
+        //db.Teste.AddRange(testes);
+        //db.SaveChanges();
+        //testes = db.Teste.ToList();
+        //var a = db.Teste.Find(1);
     }
 
-    private void SelectUser(int userId)
+    protected int getPages()
     {
-        selectedUserId = userId;
-        selectedUserBlogs = blogResponse.Blogs.Where(blog => blog.UserId == userId).ToList();
-        isBlogModalVisible = true;
+        return db.User.Count() / 100;
     }
 
-    private void CloseBlogModal()
+    protected List<Blog> GetBlogs(int UserId)
     {
-        isBlogModalVisible = false;
+        return db.Blog.Where(x => x.user_id == UserId).ToList();
     }
 
-    public class UserResponse
-    {
-        public bool Success { get; set; }
-        public string Time { get; set; }
-        public string Message { get; set; }
-        public int TotalUsers { get; set; }
-        public int Offset { get; set; }
-        public int Limit { get; set; }
-        public List<User> Users { get; set; }
-    }
-
-    public class User
-    {
-        public string LastName { get; set; }
-        public string Email { get; set; }
-        public int Id { get; set; }
-        public string Phone { get; set; }
-        public string Street { get; set; }
-        public string State { get; set; }
-        public string ZipCode { get; set; }
-        public double Latitude { get; set; }
-        public string Gender { get; set; }
-        public string FirstName { get; set; }
-        public string DateOfBirth { get; set; }
-        public string Job { get; set; }
-        public string City { get; set; }
-        public string Country { get; set; }
-        public double Longitude { get; set; }
-        public List<Blog> SelectedUserBlogs { get; set; }
-    }
-
-    public class BlogResponse
-    {
-        public bool Success { get; set; }
-        public string Message { get; set; }
-        public int Offset { get; set; }
-        public int Limit { get; set; }
-        public List<Blog> Blogs { get; set; }
-    }
-
-    public class Blog
-    {
-        public string Title { get; set; }
-        public string ContentText { get; set; }
-        public int Id { get; set; }
-        public string PhotoUrl { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public DateTime UpdatedAt { get; set; }
-        public int UserId { get; set; }
-        public string Description { get; set; }
-        public string ContentHtml { get; set; }
-        public string Category { get; set; }
-    }
 }

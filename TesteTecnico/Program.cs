@@ -1,5 +1,8 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using Microsoft.EntityFrameworkCore;
+using System;
+using TesteTecnico;
 using TesteTecnico.Data;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -8,8 +11,13 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddSingleton<WeatherForecastService>();
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseMySql("Server=192.168.100.11;Database=MyDatabase;Uid=root;Pwd=123456;", new MySqlServerVersion("8.0.33")));
+
+
 
 var app = builder.Build();
+
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
