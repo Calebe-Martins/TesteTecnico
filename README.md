@@ -1,6 +1,6 @@
 # Meu Projeto
 
-#IMPORTANTE:
+# IMPORTANTE:
 ### PARA UTILIZAR O PROJETO. ACESSE Program.cs DENTRO DO PROJETO E ALTERE A LINHA 19 PARA O IP CORRETO DO SERVIDOR. AO UTILIZAR DOCKER, PODE APONTAR PARA O IPV4 DA SUA MÁQUINA
 
 ## Funcionalidades
@@ -33,6 +33,7 @@ Foram seguidos os seguintes princípios do SOLID:
 Não foram mencionados princípios específicos que não foram seguidos.
 
 ### Script usado para criar o banco de dados no MySQL
+```sql
 CREATE DATABASE MyDatabase;
 
 CREATE TABLE MyDatabase.Blog (
@@ -64,3 +65,4 @@ CREATE TABLE MyDatabase.User (
     country VARCHAR(100),
     longitude FLOAT
 );
+```
