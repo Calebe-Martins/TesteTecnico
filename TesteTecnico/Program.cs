@@ -16,7 +16,7 @@ builder.Services.AddScoped<Repository>();
 builder.Services.AddScoped<SyncData>();
 // Entity Framework
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseMySql("Server=172.16.9.117;Database=MyDatabase;Uid=root;Pwd=123456;", new MySqlServerVersion("8.0.33")));
+    options.UseMySql("Server=***.***.*.***;Database=MyDatabase;Uid=root;Pwd=123456;", new MySqlServerVersion("8.0.33")));
 
 
 
