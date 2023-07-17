@@ -22,47 +22,28 @@ public class SyncData
             {
                 List<User> users = responseUser.users;
 
-                foreach (var user in users)
+                // Filtra os usuários que não existem no banco de dados
+                var newUsers = users.Where(u => !_db.User.Any(dbUser => dbUser.id == u.id)).ToList();
+
+                if (newUsers.Any())
                 {
-                    try
-                    {
-                        var existingUser = _db.User.Find(user.id);
-
-                        if (existingUser == null)
-                        {
-                            _db.User.Add(user);
-                        }
-
-                        _db.SaveChanges();
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine(ex.Message);
-                    }
-
+                    _db.User.AddRange(newUsers);
+                    _db.SaveChanges();
                 }
             }
+
             BlogResponse responseBlog = await client.GetFromJsonAsync<BlogResponse>("https://api.slingacademy.com/v1/sample-data/blog-posts?offset=0&limit=1000");
             if (responseBlog != null)
             {
                 List<Blog> blogs = responseBlog.blogs;
-                foreach (var blog in blogs)
+
+                // Filtra os blogs que não existem no banco de dados
+                var newBlogs = blogs.Where(b => !_db.Blog.Any(dbBlog => dbBlog.id == b.id)).ToList();
+
+                if (newBlogs.Any())
                 {
-                    try
-                    {
-                        var existingBlog = _db.Blog.Find(blog.id);
-
-                        if (existingBlog == null)
-                        {
-                            _db.Blog.Add(blog);
-                        }
-
-                        _db.SaveChanges();
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine(ex.Message);
-                    }
+                    _db.Blog.AddRange(newBlogs);
+                    _db.SaveChanges();
                 }
             }
         }
