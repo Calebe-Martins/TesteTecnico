@@ -8,8 +8,6 @@ namespace TesteTecnico
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
         {
         }
-
-        public DbSet<Modelo> Teste { get; set; }
         public DbSet<Blog> Blog { get; set; }
         public DbSet<User> User { get; set; }
     }

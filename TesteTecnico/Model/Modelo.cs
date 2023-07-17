@@ -3,16 +3,6 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TesteTecnico.Model
 {
-    public class Modelo
-    {
-        [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int idTeste { get; set; }
-        public string nome { get; set; }
-        public string sobrenome { get; set; }
-        public int idade { get; set; }
-    }
-
     public class UserResponse
     {
         public bool success { get; set; }

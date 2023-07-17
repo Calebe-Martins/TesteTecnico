@@ -2,11 +2,11 @@
 using TesteTecnico;
 using TesteTecnico.Model;
 
-public class UserRepository
+public class Repository
 {
     private readonly AppDbContext _db;
 
-    public UserRepository(AppDbContext db)
+    public Repository(AppDbContext db)
     {
         _db = db;
     }
