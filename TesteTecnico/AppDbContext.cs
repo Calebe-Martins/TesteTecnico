@@ -9,7 +9,7 @@ namespace TesteTecnico
         {
         }
 
-        public DbSet<Teste> Teste { get; set; }
+        public DbSet<Modelo> Teste { get; set; }
         public DbSet<Blog> Blog { get; set; }
         public DbSet<User> User { get; set; }
     }

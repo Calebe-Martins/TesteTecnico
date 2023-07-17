@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TesteTecnico.Model
 {
-    public class Teste
+    public class Modelo
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]

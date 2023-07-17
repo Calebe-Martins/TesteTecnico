@@ -11,6 +11,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddSingleton<WeatherForecastService>();
+// Registro do serviço UserRepository
+builder.Services.AddScoped<UserRepository>();
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseMySql("Server=192.168.100.11;Database=MyDatabase;Uid=root;Pwd=123456;", new MySqlServerVersion("8.0.33")));
 

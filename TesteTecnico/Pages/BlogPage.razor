@@ -1,0 +1,113 @@
+﻿@page "/BlogPage"
+@using TesteTecnico.Model;
+
+@inject AppDbContext db;
+@inject NavigationManager NavigationManager; //PARA FORÇAR FOCO NA TABELA QUANDO ALTERADO A PÁGINA//
+
+<PageTitle>Blog</PageTitle>
+
+@foreach (var blog in blogs)
+{
+    <div class="card mb-3">
+        <div class="card-body">
+            <table id="topBlog">
+                <tr>
+                    <td><img src="@blog.photo_url" class="card-img-top" alt="Imagem da postagem" style="height:100px;width:100px;border-radius:50%"></td>
+                    <td style="padding-left:15px;">
+                        <h1 class="card-title">@blog.title</h1>
+                        <div>Name: @(db.User.FirstOrDefault(u => u.id == blog.user_id)?.first_name + " " + db.User.FirstOrDefault(u => u.id == blog.user_id)?.last_name)</div>
+                        <h4 class="card-text">@blog.description</h4>
+                        <button class="btn btn-link" @onclick="() => ToggleCollapse(blog.id)">Leia mais</button>
+                        @if (expandedBlogId == blog.id)
+                        {
+                            <div class="card-text">@((MarkupString)blog.content_html)</div>
+                        }
+                        <div class="card-text"><small class="text-muted">Criado em: @blog.created_at.ToString("dd/MM/yyyy")</small></div>
+                        <div class="card-text"><small class="text-muted">Atualizado em: @blog.updated_at.ToString("dd/MM/yyyy")</small></div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+}
+
+@*COLAPSE TABLE*@
+@code {
+    private int expandedBlogId;
+
+    private void ToggleCollapse(int blogId)
+    {
+        if (expandedBlogId == blogId)
+        {
+            expandedBlogId = 0;
+        }
+        else
+        {
+            expandedBlogId = blogId;
+        }
+    }
+}
+@*FIM COLAPSE TABLE*@
+
+@*PAGINAÇÃO*@
+<div class="d-flex justify-content-center p-5">
+    @{
+        for (int i = 1; i <= db.Blog.Count() / 100; i++)
+        {
+            RenderFragment botao = CriaBotao(i);
+            <div style="margin-right: 10px;">
+                @botao
+            </div>
+        }
+    }
+</div>
+
+@code {
+    private int botaoClicadoId = 1;
+
+    private RenderFragment CriaBotao(int id) => builder =>
+    {
+        bool botaoClicado = id == botaoClicadoId;
+        string estilo = botaoClicado ? "background-color: green;" : "";
+
+        builder.OpenElement(0, "button");
+        builder.AddAttribute(1, "class", "btn btn-primary btn-circle");
+        builder.AddAttribute(2, "id", $"botao-{id}");
+        builder.AddAttribute(3, "onclick", EventCallback.Factory.Create(this, () => BotaoClicado(id)));
+        builder.AddAttribute(4, "style", estilo);
+        builder.AddContent(5, $"{id}");
+        builder.CloseElement();
+    };
+
+    private void BotaoClicado(int id)
+    {
+        botaoClicadoId = id;
+
+        blogs = db.Blog
+            .OrderBy(user => user.id)
+            .Skip((id - 1) * 100)
+            .Take(100)
+            .ToList();
+
+        NavigationManager.NavigateTo("/BlogPage/#topBlog");
+    }
+}
+@*FIM PAGINCAÇÃO*@
+
+@*INICIALIZAÇÃO*@
+@code
+{
+    public List<User> users;
+    public List<Blog> blogs;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // PRIMEIRA CARGA DO BANCO
+        blogs = db.Blog
+                    .OrderBy(b => b.user_id)
+                    .Skip(0)
+                    .Take(100)
+                    .ToList();
+    }
+}
+@*FIM INICIALIZAÇÃO*@

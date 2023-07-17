@@ -3,19 +3,214 @@
 @using TesteTecnico.Model;
 
 @inject AppDbContext db;
+@inject NavigationManager NavigationManager; //PARA FORÇAR FOCO NA TABELA QUANDO ALTERADO A PÁGINA//
 
-<h1>Salve</h1>
-<button @onclick="ButtonClick">Clique Aqui</button>
 
-<p>@getPages()</p>
+<PageTitle>Usuários</PageTitle>
+
+@*SINCRONIZANDO API COM BANCO*@
+<div class="d-flex justify-content-center">
+    <button class="btn btn-primary" @onclick="ButtonClick">Sincronizar</button>
+</div><br />
+@if(carregando)
+{
+    <p><em>Carregando...</em></p>
+}
+@*FIM SINCRONIZANDO API COM BANCO*@
+
+@*TABELA DE EXIBIÇÃO USUÁRIOS*@
+<div class="table-responsive">
+    <table class="table table-bordered" id="top">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nome</th>
+                <th>Nascimento</th>
+                <th>Gênero</th>
+                <th>Email</th>
+                <th>Telefone</th>
+                <th>Profissão</th>
+                <th>País</th>
+                <th>Estado</th>
+                <th>Cidade</th>
+                <th>CEP</th>
+                <th>Rua</th>
+                <th>Latitude Longitude</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var user in users)
+            {
+                <tr @onclick="() => ToggleCollapse(user)">
+                    <td>@user.id</td>
+                    <td>@user.first_name @user.last_name</td>
+                    <td>@user.date_of_birth.ToString("dd/MM/yyyy")</td>
+                    <td>@user.gender</td>
+                    <td>@user.email</td>
+                    <td>@user.phone</td>
+                    <td>@user.job</td>
+                    <td>@user.country</td>
+                    <td>@user.state</td>
+                    <td>@user.city</td>
+                    <td>@user.zipcode</td>
+                    <td>@user.street</td>
+                    <td>lat:@user.latitude<br />lng:@user.longitude</td>
+                </tr>
+                @if (expandedUser == user)
+                {
+                    <tr class="bg-secondary">
+                        <th>Id</th>
+                        <th>Image</th>
+                        <th>Title</th>
+                        <th>Category</th>
+                        <th>Description</th>
+                        <th colspan="6" class="text-wrap">Content Text</th>
+                        <th>Created At</th>
+                        <th>Updated At</th>
+                    </tr>
+                    @foreach(var blog in blogs)
+                    {
+                        <tr class="bg-secondary">
+                            <td>@blog.user_id</td>
+                            <td><img src="@blog.photo_url" style="height:100px;width:100px;border-radius:50%" /></td>
+                            <td>@blog.title</td>
+                            <td>@blog.category</td>
+                            <td>@blog.description</td>
+                            <td colspan="7">@blog.content_text</td>
+                            <td>@blog.created_at.ToString("dd/MM/yyyy")</td>
+                            <td>@blog.updated_at.ToString("dd/MM/yyyy")</td>
+                        </tr>
+                    }
+                }
+            }
+        </tbody>
+    </table>
+</div>
+@*FIM TABELA DE EXIBIÇÃO USUÁRIOS*@
+
+@*INICIALIZAÇÃO*@
+@code
+{
+    private List<User> users;
+    private List<Blog> blogs;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // PRIMEIRA CARGA DO BANCO
+        users = db.User
+                    .OrderBy(user => user.id)
+                    .Skip(0)
+                    .Take(100)
+                    .ToList();
+    }
+}
+@*FIM INICIALIZAÇÃO*@
+
+@*COLAPSE TABLE*@
+@code {
+    private User expandedUser;
+
+    private void ToggleCollapse(User users)
+    {
+        if (expandedUser == users)
+        {
+            expandedUser = null;
+        }
+        else
+        {
+            blogs = GetBlogs(users.id);
+            expandedUser = users;
+        }
+    }
+
+    protected List<Blog> GetBlogs(int UserId)
+    {
+        return db.Blog.Where(x => x.user_id == UserId).ToList();
+    }
+}
+@*FIM COLAPSE TABLE*@
+
+@*PAGINAÇÃO*@
+<div class="d-flex justify-content-center p-5">
+    @{
+        for (int i = 1; i <= db.User.Count() / 100; i++)
+        {
+            RenderFragment botao = CriaBotao(i);
+            <div style="margin-right: 10px;">
+                @botao
+            </div>
+        }
+    }
+</div>
 
 @code {
-    private void ButtonClick()
+    private int botaoClicadoId = 1;
+
+    private RenderFragment CriaBotao(int id) => builder =>
     {
+        bool botaoClicado = id == botaoClicadoId;
+        string estilo = botaoClicado ? "background-color: green;" : "";
+
+        builder.OpenElement(0, "button");
+        builder.AddAttribute(1, "class", "btn btn-primary btn-circle");
+        builder.AddAttribute(2, "id", $"botao-{id}");
+        builder.AddAttribute(3, "onclick", EventCallback.Factory.Create(this, () => BotaoClicado(id)));
+        builder.AddAttribute(4, "style", estilo);
+        builder.AddContent(5, $"{id}");
+        builder.CloseElement();
+    };
+
+    private void BotaoClicado(int id)
+    {
+        botaoClicadoId = id;
+
+        users = db.User
+            .OrderBy(user => user.id)
+            .Skip((id - 1) * 100)
+            .Take(100)
+            .ToList();
+
+        NavigationManager.NavigateTo("#top");
+    }
+}
+@*FIM PAGINCAÇÃO*@
+
+@*SINCRONIZAÇÃO API BANCO*@
+@code {
+    public bool carregando = false;
+    public async Task ButtonClick()
+    {
+        carregando = true;
+        StateHasChanged();
         HttpClient httpClient = new HttpClient();
-        var a =  httpClient.GetFromJsonAsync<UserResponse>("https://api.slingacademy.com/v1/sample-data/users?offset=0&limit=1000").Result;
+        var a = await httpClient.GetFromJsonAsync<UserResponse>("https://api.slingacademy.com/v1/sample-data/users?offset=0&limit=1000");
         ReplaceIntoUser(a.users);
-        var b = httpClient.GetFromJsonAsync<BlogResponse>("");
+        var b = await httpClient.GetFromJsonAsync<BlogResponse>("https://api.slingacademy.com/v1/sample-data/blog-posts?offset=0&limit=1000");
+        ReplaceIntoBlog(b.blogs);
+        carregando = false;
+        StateHasChanged();
+    }
+
+    public void ReplaceIntoBlog (List<Blog> blogs)
+    {
+        foreach(var blog in blogs)
+        {
+            try
+            {
+                var existingBlog = db.Blog.Find(blog.id);
+
+                if (existingBlog == null)
+                {
+                    db.Blog.Add(blog);
+                }
+
+                db.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
     }
 
     public void ReplaceIntoUser(List<User> users)
@@ -41,30 +236,4 @@
         }
     }
 }
-
-@code
-{
-    public List<Teste> testes { get; set; }
-
-    protected override async Task OnInitializedAsync()
-    {
-        ////db.Teste.Add(new Teste() { nome = "TESTE", sobrenome = "1", idade = 0 });
-        ////db.SaveChanges();
-        //testes = db.Teste.ToList();
-        //db.Teste.AddRange(testes);
-        //db.SaveChanges();
-        //testes = db.Teste.ToList();
-        //var a = db.Teste.Find(1);
-    }
-
-    protected int getPages()
-    {
-        return db.User.Count() / 100;
-    }
-
-    protected List<Blog> GetBlogs(int UserId)
-    {
-        return db.Blog.Where(x => x.user_id == UserId).ToList();
-    }
-
-}
+@*FIM SINCRONIZAÇÃO API BANCO*@

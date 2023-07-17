@@ -1,0 +1,149 @@
+﻿@page "/Usuario/{userId:int}"
+
+@inject UserRepository userRepository
+@inject NavigationManager navigationManager
+@using TesteTecnico.Model;
+
+@if (users == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <div class="card mb-5">
+        <div class="card-header">
+            User Details
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <tbody>
+                                <tr>
+                                    <th>ID:</th>
+                                    <td>@users.id</td>
+                                </tr>
+                                <tr>
+                                    <th>Name:</th>
+                                    <td>@users.first_name @users.last_name</td>
+                                </tr>
+                                <tr>
+                                    <th>Email:</th>
+                                    <td>@users.email</td>
+                                </tr>
+                                <tr>
+                                    <th>Phone:</th>
+                                    <td>@users.phone</td>
+                                </tr>
+                                <tr>
+                                    <th>Street:</th>
+                                    <td>@users.street</td>
+                                </tr>
+                                <tr>
+                                    <th>City:</th>
+                                    <td>@users.city</td>
+                                </tr>
+                                <tr>
+                                    <th>Country:</th>
+                                    <td>@users.country</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <tbody>
+                                <tr>
+                                    <th>State:</th>
+                                    <td>@users.state</td>
+                                </tr>
+                                <tr>
+                                    <th>Zip Code:</th>
+                                    <td>@users.zipcode</td>
+                                </tr>
+                                <tr>
+                                    <th>Gender:</th>
+                                    <td>@users.gender</td>
+                                </tr>
+                                <tr>
+                                    <th>Date of Birth:</th>
+                                    <td>@users.date_of_birth.ToString("dd/MM/yyyy")</td>
+                                </tr>
+                                <tr>
+                                    <th>Job:</th>
+                                    <td>@users.job</td>
+                                </tr>
+                                <tr>
+                                    <th>Longitude:</th>
+                                    <td>@users.longitude</td>
+                                </tr>
+                                <tr>
+                                    <th>Latitude:</th>
+                                    <td>@users.latitude</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    @if (blogs == null)
+    {
+        <p>Loading posts...</p>
+    }
+    else if (blogs.Count == 0)
+    {
+        <p>No posts found.</p>
+    }
+    else
+    {
+        @foreach (var blog in blogs)
+        {
+            <div class="card mb-5">
+                <div class="card-header d-flex justify-content-center">
+                    <img src="@blog.photo_url" class="card-img-top" alt="Post Image" style="width: 100px; height: 100px; border-radius: 10%;">
+                </div>
+                <div class="card-body">
+                    <h1 class="card-title">@blog.title</h1>
+                    <p class="card-text"><strong>Descrição:</strong> @blog.description</p>
+                    <p class="card-text"><strong>Categoria:</strong> @blog.category</p>
+                    <div class="card-text">@((MarkupString)blog.content_html)</div>
+                </div>
+                <div class="card-footer d-flex justify-content-between">
+                    <div class="card-text"><small class="text-muted">Criado em: @blog.created_at.ToString("dd/MM/yyyy")</small></div>
+                    <div class="card-text"><small class="text-muted">Atualizado em: @blog.updated_at.ToString("dd/MM/yyyy")</small></div>
+                </div>
+            </div>
+        }
+    }
+}
+
+@code {
+    private User users;
+    private List<Blog> blogs;
+
+    [Parameter]
+    public int userId { get; set; }
+
+    protected override void OnInitialized()
+    {
+        LoadData(userId); // Passando o ID do usuário diretamente
+    }
+
+    private async Task LoadData(int userId)
+    {
+        users = userRepository.GetUserById(userId);
+        if (users != null)
+        {
+            blogs = userRepository.GetBlogsByUserId(userId);
+        }
+        else
+        {
+            navigationManager.NavigateTo("/not-found");
+        }
+    }
+}
