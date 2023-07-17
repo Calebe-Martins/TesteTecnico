@@ -9,7 +9,7 @@
 - Paginação por usuário
 - Paginação por postagem
 
-## Perguntas
+## Perguntas:
 
 ### Qual DB foi usado e por quê?
 Foi utilizado o MySQL como banco de dados. A escolha do banco de dados depende de vários fatores, como requisitos de desempenho, escalabilidade, suporte e familiaridade. O MySQL é um banco de dados popular e é compatível com o Entity Framework Core, que foi usado no código para acessar e manipular os dados.
@@ -25,12 +25,13 @@ Em um cenário de alta performance, algumas arquiteturas e padrões de projeto i
 
 ### Quais princípios do SOLID foram seguidos, quais não e por quê?
 Foram seguidos os seguintes princípios do SOLID:
-- Princípio da Responsabilidade Única (SRP): Cada classe tem responsabilidade única, como exibir usuário e suas postagens, seguindo o princípio de coesão.
-- Princípio da Inversão de Dependência (DIP): Foi utilizado o recurso de injeção de dependência para obter instâncias de classes necessárias, permitindo uma maior flexibilidade e facilidade de substituição de implementações.
-- Princípio da Substituição de Liskov (LSP): O modelo de dados é utilizado de forma consistente, respeitando as regras e contratos estabelecidos para sua utilização.
-- Princípio da Segregação de Interface (ISP): A chamada para o contexto do banco de dados carrega apenas as interfaces necessárias, evitando dependências desnecessárias.
-
-Não foram mencionados princípios específicos que não foram seguidos.
+#### USADO
+- Princípio da Responsabilidade Única (SRP): Tem responsabilidade única, como por exemplo: Exibir usuário e suas postagens. 
+- Princípio da Inversão de Dependência (DIP): Inject 
+- Princípio da Substituição de Liskov (LSP): O Model onde carregava o modelo de cabeçalho e corpo 
+- Princípio da Segregação de Interface (ISP): Chamada para o contexto do banco de dados carregando as interfaces. 
+#### NÃO USADO
+- Princípio Aberto/Fechado (OCP): Sempre estando fechado. N permitindo modificar. Apenas consultar 
 
 ### Script usado para criar o banco de dados no MySQL
 ```sql
